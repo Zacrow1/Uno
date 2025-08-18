@@ -19,6 +19,10 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  posts     Post[]
+  gamePlayers GamePlayer[]
+  turns     Turn[]
 }
 
 model Post {
@@ -29,4 +33,88 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+// UNO Game Models
+model Game {
+  id              String   @id @default(cuid())
+  status          GameStatus @default(WAITING)
+  direction       Direction @default(CLOCKWISE)
+  currentPlayerIndex Int    @default(0)
+  winner          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  players         GamePlayer[]
+  turns           Turn[]
+  cards           GameCard[]
+  
+  @@map("games")
+}
+
+model GamePlayer {
+  id       String @id @default(cuid())
+  gameId   String
+  playerId String
+  name     String
+  score    Int    @default(0)
+  saidUno  Boolean @default(false)
+  joinedAt DateTime @default(now())
+  
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player   User   @relation(fields: [playerId], references: [id])
+  hand     GameCard[]
+  
+  @@unique([gameId, playerId])
+  @@map("game_players")
+}
+
+model GameCard {
+  id       String @id @default(cuid())
+  gameId   String
+  color    String
+  value    String
+  display  String
+  location CardLocation @default(DECK)
+  playerId String?
+  order    Int    @default(0)
+  createdAt DateTime @default(now())
+  
+  game     Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player   GamePlayer? @relation(fields: [playerId], references: [id])
+  
+  @@map("game_cards")
+}
+
+model Turn {
+  id        String   @id @default(cuid())
+  gameId    String
+  playerId  String
+  action    String
+  cardId    String?
+  timestamp DateTime @default(now())
+  
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player    User     @relation(fields: [playerId], references: [id])
+  
+  @@map("turns")
+}
+
+enum GameStatus {
+  WAITING
+  PLAYING
+  FINISHED
+}
+
+enum Direction {
+  CLOCKWISE
+  COUNTERCLOCKWISE
+}
+
+enum CardLocation {
+  DECK
+  DISCARD
+  HAND
 }
