@@ -19,10 +19,13 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+<<<<<<< HEAD
   
   posts     Post[]
   gamePlayers GamePlayer[]
   turns     Turn[]
+=======
+>>>>>>> 6a9f7057c9d8f4ee5b0aef24d4b8763f7d5db0e9
 }
 
 model Post {
@@ -33,6 +36,7 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+<<<<<<< HEAD
   
   author    User     @relation(fields: [authorId], references: [id])
 }
@@ -117,4 +121,6 @@ enum CardLocation {
   DECK
   DISCARD
   HAND
+=======
+>>>>>>> 6a9f7057c9d8f4ee5b0aef24d4b8763f7d5db0e9
 }

@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+<<<<<<< HEAD
 import { db } from './db';
 
 interface UnoGameState {
@@ -27,10 +28,13 @@ interface UnoGameState {
 // Store active games in memory (in production, use Redis or similar)
 const activeGames = new Map<string, UnoGameState>();
 const playerSockets = new Map<string, string>(); // playerId -> socketId
+=======
+>>>>>>> 6a9f7057c9d8f4ee5b0aef24d4b8763f7d5db0e9
 
 export const setupSocket = (io: Server) => {
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
+<<<<<<< HEAD
 
     // Handle joining a game
     socket.on('joinGame', async (data: { playerName: string }) => {
@@ -378,11 +382,23 @@ export const setupSocket = (io: Server) => {
         socket.emit('gameError', 'Failed to challenge UNO');
         console.error('Error challenging UNO:', error);
       }
+=======
+    
+    // Handle messages
+    socket.on('message', (msg: { text: string; senderId: string }) => {
+      // Echo: broadcast message only the client who send the message
+      socket.emit('message', {
+        text: `Echo: ${msg.text}`,
+        senderId: 'system',
+        timestamp: new Date().toISOString(),
+      });
+>>>>>>> 6a9f7057c9d8f4ee5b0aef24d4b8763f7d5db0e9
     });
 
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
+<<<<<<< HEAD
       
       // Remove player from active games
       for (const [playerId, socketId] of playerSockets.entries()) {
@@ -484,3 +500,15 @@ function getNextPlayerIndex(game: UnoGameState): number {
   
   return nextIndex;
 }
+=======
+    });
+
+    // Send welcome message
+    socket.emit('message', {
+      text: 'Welcome to WebSocket Echo Server!',
+      senderId: 'system',
+      timestamp: new Date().toISOString(),
+    });
+  });
+};
+>>>>>>> 6a9f7057c9d8f4ee5b0aef24d4b8763f7d5db0e9
