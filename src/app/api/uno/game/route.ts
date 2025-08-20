@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { gameCache, cacheKeys } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +13,16 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check cache first
+    const cacheKey = cacheKeys.game(gameId);
+    const cached = gameCache.cache.get(cacheKey);
+    if (cached) {
+      console.log(`Cache hit for game ${gameId}`);
+      return NextResponse.json(cached);
+    }
+
+    console.log(`Cache miss for game ${gameId}`);
 
     const game = await db.game.findUnique({
       where: { id: gameId },
@@ -87,6 +98,9 @@ export async function GET(request: NextRequest) {
       }))
     };
 
+    // Cache the response
+    gameCache.cache.set(cacheKey, gameState);
+
     return NextResponse.json(gameState);
   } catch (error) {
     console.error('Error getting game state:', error);
@@ -95,4 +109,11 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Helper function to invalidate game cache
+export async function invalidateGameCache(gameId: string) {
+  const cacheKey = cacheKeys.game(gameId);
+  gameCache.cache.delete(cacheKey);
+  console.log(`Invalidated cache for game ${gameId}`);
 }
