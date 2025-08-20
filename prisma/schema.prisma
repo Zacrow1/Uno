@@ -37,11 +37,10 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
 }
 
-// UNO Game Models
+// UNO Game Models - Week 6 (Basic Features)
 model Game {
   id              String   @id @default(cuid())
   status          GameStatus @default(WAITING)
-  direction       Direction @default(CLOCKWISE)
   currentPlayerIndex Int    @default(0)
   winner          String?
   createdAt       DateTime @default(now())
@@ -106,11 +105,6 @@ enum GameStatus {
   WAITING
   PLAYING
   FINISHED
-}
-
-enum Direction {
-  CLOCKWISE
-  COUNTERCLOCKWISE
 }
 
 enum CardLocation {

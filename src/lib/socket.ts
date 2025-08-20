@@ -1,5 +1,4 @@
 import { Server } from 'socket.io';
-import { db } from './db';
 
 interface UnoGameState {
   id: string;
@@ -11,7 +10,6 @@ interface UnoGameState {
     saidUno: boolean;
   }>;
   currentPlayerIndex: number;
-  direction: 'clockwise' | 'counterclockwise';
   topCard: string;
   deck: string[];
   discardPile: string[];
@@ -47,7 +45,6 @@ export const setupSocket = (io: Server) => {
             id: gameId,
             players: [],
             currentPlayerIndex: 0,
-            direction: 'clockwise',
             topCard: '',
             deck: [],
             discardPile: [],
@@ -207,8 +204,8 @@ export const setupSocket = (io: Server) => {
           io.to(gameId).emit('gameMessage', `${playerName} forgot to say UNO! Drew 2 cards.`);
         }
 
-        // Move to next player
-        game.currentPlayerIndex = getNextPlayerIndex(game);
+        // Move to next player (simple clockwise only for Week 6)
+        game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
         
         // Notify all players
         io.to(gameId).emit('gameState', game);
@@ -261,8 +258,8 @@ export const setupSocket = (io: Server) => {
             timestamp: new Date().toISOString()
           });
 
-          // Move to next player
-          game.currentPlayerIndex = getNextPlayerIndex(game);
+          // Move to next player (simple clockwise only for Week 6)
+          game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
           
           // Notify all players
           io.to(gameId).emit('gameState', game);
@@ -423,7 +420,7 @@ export const setupSocket = (io: Server) => {
 function generateDeck(): string[] {
   const deck: string[] = [];
   const colors = ['red', 'blue', 'green', 'yellow'];
-  const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw Two'];
+  const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   
   // Add colored cards
   colors.forEach(color => {
@@ -436,12 +433,6 @@ function generateDeck(): string[] {
       }
     });
   });
-  
-  // Add wild cards
-  for (let i = 0; i < 4; i++) {
-    deck.push('Wild');
-    deck.push('Wild Draw Four');
-  }
   
   return deck;
 }
@@ -456,9 +447,6 @@ function shuffleArray(array: any[]) {
 function isValidPlay(card: string, topCard: string): boolean {
   if (!topCard) return true;
   
-  // Wild cards can always be played
-  if (card.includes('Wild')) return true;
-  
   // Check color match
   const cardColor = card.split(' ')[0];
   const topColor = topCard.split(' ')[0];
@@ -470,17 +458,4 @@ function isValidPlay(card: string, topCard: string): boolean {
   if (cardValue === topValue) return true;
   
   return false;
-}
-
-function getNextPlayerIndex(game: UnoGameState): number {
-  const playerCount = game.players.length;
-  let nextIndex = game.currentPlayerIndex;
-  
-  if (game.direction === 'clockwise') {
-    nextIndex = (game.currentPlayerIndex + 1) % playerCount;
-  } else {
-    nextIndex = (game.currentPlayerIndex - 1 + playerCount) % playerCount;
-  }
-  
-  return nextIndex;
 }
